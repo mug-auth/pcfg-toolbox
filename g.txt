@@ -1,0 +1,22 @@
+5
+-1 S The start symbol (there can be only one, and always is)
+-2 X null
+-3 A null
+-4 B null
+-5 C null
+4
+0 e The empty string symbol (there can be only one, and always is) 
+1 a null 
+2 b null 
+3 c null 
+10
+1.0 -1 -2 -1 
+2.0 -1 0 
+1.0 -3 1 
+1.0 -4 2 
+1.0 -5 3 
+1.0 -5 -2 
+1.0 -2 -3 
+1.0 -2 -4 
+1.0 -2 -5 
+1.0 -2 2 2 

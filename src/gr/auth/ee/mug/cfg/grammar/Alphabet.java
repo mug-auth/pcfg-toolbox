@@ -1,0 +1,354 @@
+package gr.auth.ee.mug.cfg.grammar;
+
+import java.util.ArrayList;
+
+/**
+ * Class that represents an alphabet. The alphabet can be used to create a
+ * grammar.
+ * 
+ * @author Vasileios Papapanagiotou
+ */
+public class Alphabet {
+
+	private final ArrayList<Integer> ids = new ArrayList<>();
+	private final ArrayList<String> symbols = new ArrayList<>();
+	private final ArrayList<String> descriptions = new ArrayList<>();
+	private int noofTerminals = 1;
+	private int noofNonTerminals = 1;
+
+	/**
+	 * Creates a new alphabet that includes the start symbol and the empty
+	 * string symbol.<br>
+	 * The start symbol is added as if
+	 * {@code addSymbol("S", false, "The start symbol")}<br>
+	 * The empty string symbol is added as if
+	 * {@code addSymbol("e", true, "The empty string symbol")}
+	 */
+	public Alphabet() {
+		// Add the start symbol and the empty string symbol
+		addSymbol(idStart, "S", "The start symbol (there can be only one, and always is)");
+		addSymbol(idEmptyString, "e", "The empty string symbol (there can be only one, and always is)");
+	}
+
+	/**
+	 * Add a new symbol to the alphabet.
+	 * 
+	 * @param symbol
+	 *            The symbol (the string representation is not required to be
+	 *            unique in the alphabet)
+	 * @param isTerminal
+	 *            Whether the symbol is a terminal one
+	 * @param description
+	 *            A description of the symbol
+	 * @return The symbol's id
+	 */
+	public int addSymbol(String symbol, boolean isTerminal, String description) {
+		int id;
+		if (isTerminal) {
+			id = noofTerminals++;
+		} else {
+			id = -++noofNonTerminals;
+		}
+
+		addSymbol(id, symbol, description);
+		return id;
+	}
+
+	@Override
+	public Alphabet clone() {
+		Alphabet al = Alphabet.newAlphabetBare();
+		for (int i = 0; i < ids.size(); i++) {
+			al.addSymbol(ids.get(i), symbols.get(i), descriptions.get(i));
+		}
+		al.noofNonTerminals = noofNonTerminals;
+		al.noofTerminals = noofTerminals;
+		return al;
+	}
+
+	/**
+	 * Return the symbol's id by its string representation.
+	 * 
+	 * @param s
+	 * @return
+	 * @throws Exception
+	 */
+	public int findSymbolId(String s) throws Exception {
+
+		int id;
+
+		for (int i = 0; i < noofNonTerminals; i++) {
+			id = getIdNonTerminal(i);
+			if (s.equals(getSymbol(id))) {
+				return id;
+			}
+		}
+
+		for (int i = 0; i < noofTerminals; i++) {
+			id = getIdTerminal(i);
+			if (s.equals(getSymbol(id))) {
+				return id;
+			}
+		}
+
+		throw new Exception("Symbol '" + s + "' string not found in Alphabet");
+	}
+
+	/**
+	 * @param id
+	 *            A symbol's id
+	 * @return The description of the symbol
+	 */
+	public String getDescription(int id) {
+		String s = "<<not found>>";
+		for (int i = 0; i < ids.size(); i++) {
+			if (ids.get(i) == id) {
+				s = descriptions.get(i);
+				break;
+			}
+		}
+		return s;
+	}
+
+	/**
+	 * Get the id of the {@code i}-th non-terminal.
+	 * 
+	 * @param i
+	 *            It should hold that {@code 0 <= i < getNoofNonTerminals()}
+	 * @return The id
+	 */
+	public int getIdNonTerminal(int i) {
+		return -(i + 1);
+	}
+
+	/**
+	 * Get the id of the {@code i}-th terminal.
+	 * 
+	 * @param i
+	 *            It should hold that {@code 0 <= i < getNoofTerminals()}
+	 * @return The id
+	 */
+	public int getIdTerminal(int i) {
+		return i;
+	}
+
+	/**
+	 * Get the index of the symbol with id {@code id}.
+	 * 
+	 * @param id
+	 *            The symbol's id
+	 * @return The index (depending on whether the symbol is terminal or
+	 *         non-terminal)
+	 */
+	public int getIdx(int id) {
+		if (id > 0) {
+			// it's a terminal
+			return id;
+		} else {
+			// it's a non-terminal
+			return -id - 1;
+		}
+	}
+
+	/**
+	 * @return The number of non-terminal symbols in the alphabet
+	 */
+	public int getNoofNonTerminals() {
+		return noofNonTerminals;
+	}
+
+	/**
+	 * @return The number of terminal symbols in the alphabet
+	 */
+	public int getNoofTerminals() {
+		return noofTerminals;
+	}
+
+	/**
+	 * @param id
+	 *            A symbol's id
+	 * @return The string representation of the symbol
+	 */
+	public String getSymbol(int id) {
+		String s = "<<not found>>";
+		for (int i = 0; i < ids.size(); i++) {
+			if (ids.get(i) == id) {
+				s = symbols.get(i);
+				break;
+			}
+		}
+		return s;
+	}
+
+	/**
+	 * @param id
+	 *            A symbol's id
+	 * @return If the symbol is the empty string symbol
+	 */
+	public boolean isEmptyStringSymbol(int id) {
+		return id == idEmptyString;
+	}
+
+	/**
+	 * @param id
+	 *            A symbol's id
+	 * @return If the symbol is the start symbol
+	 */
+	public boolean isStartSymbol(int id) {
+		return id == idStart;
+	}
+
+	/**
+	 * @param id
+	 *            A symbol's id
+	 * @return If the symbol is terminal
+	 */
+	public boolean isTerminal(int id) {
+		return id > 0;
+	}
+
+	public String printRule(Rule r) {
+		String s = getSymbol(r.getFrom()) + " -> ";
+		for (int i = 0; i < r.getToLength(); i++) {
+			s += getSymbol(r.getTo(i)) + " ";
+		}
+		s += "(" + String.valueOf(r.getProbability()) + ")";
+		return s;
+	}
+
+	/**
+	 * Return a symbol representation of a string.
+	 * 
+	 * @param stringIDs
+	 *            The ids of the symbols that make up the string
+	 * @return A {@code String} containing the string's symbols
+	 */
+	public String printString(ArrayList<Integer> stringIDs) {
+		String s = "";
+		for (int i = 0; i < stringIDs.size(); i++) {
+			s += getSymbol(stringIDs.get(i)) + " ";
+		}
+		return s;
+	}
+
+	/**
+	 * Return a symbol representation of a string.
+	 * 
+	 * @param stringIDs
+	 *            The ids of the symbols that make up the string
+	 * @return A {@code String} containing the string's symbols
+	 */
+	public String printString(int[] stringIDs) {
+		String s = "";
+		for (int i = 0; i < stringIDs.length; i++) {
+			s += getSymbol(stringIDs[i]) + " ";
+		}
+		return s;
+	}
+
+	/**
+	 * @param i
+	 *            A symbol's id
+	 * @return A {@code String} containing a textual summary of the symbol
+	 */
+	public String printSymbol(int i) {
+		String s = symbols.get(i) + " (";
+		if (!isTerminal(ids.get(i))) {
+			s += "non ";
+		}
+		s += "terminal): " + descriptions.get(i) + " [id=" + String.valueOf(ids.get(i)) + "]\n";
+		return s;
+	}
+
+	/**
+	 * @return A {@code String} containing a textual summary of the alphabet,
+	 *         usually to be printed to {@code System.out}
+	 */
+	public String printSymbols() {
+		String s = "";
+		for (int i = 0; i < ids.size(); i++) {
+			s += printSymbol(i);
+		}
+		return s;
+	}
+
+	public int[] stringIDs(String s) throws Exception {
+		return stringIDs(s.split(" "));
+	}
+
+	public int[] stringIDs(String[] s) throws Exception {
+		int[] ids = new int[s.length];
+		for (int i = 0; i < ids.length; i++) {
+			ids[i] = findSymbolId(s[i]);
+		}
+		return ids;
+	}
+
+	private void addSymbol(int id, String symbol, String description) {
+		ids.add(id);
+		symbols.add(symbol);
+		descriptions.add(description);
+	}
+
+	/**
+	 * Create a new {@code Alphabet} from two {@code String}s containing
+	 * information for non-terminals and terminal. This function is only used by
+	 * {@code ContextFreeGrammar.newFromFile}.
+	 * 
+	 * @param txtNonTerminals
+	 * @param txtTerminals
+	 * @return
+	 */
+	public static Alphabet newFromStrings(String[] txtNonTerminals, String[] txtTerminals) {
+		Alphabet al = Alphabet.newAlphabetBare();
+
+		al.noofNonTerminals = txtNonTerminals.length;
+
+		for (int i = 0; i < al.noofNonTerminals; i++) {
+			String[] ss = txtNonTerminals[i].split(" ", 3);
+			int id = Integer.parseInt(ss[0]);
+			String symbol = ss[1];
+			String description = ss[2];
+			if ("null".equals(description)) { // proper null restoration ("null"
+												// becomes null)
+				description = null;
+			}
+			al.addSymbol(id, symbol, description);
+		}
+
+		al.noofTerminals = txtTerminals.length;
+
+		for (int i = 0; i < al.noofTerminals; i++) {
+			String[] ss = txtTerminals[i].split(" ", 3);
+			int id = Integer.parseInt(ss[0]);
+			String symbol = ss[1];
+			String description = ss[2];
+			if ("null".equals(description)) { // proper null restoration ("null"
+												// becomes null)
+				description = null;
+			}
+			al.addSymbol(id, symbol, description);
+		}
+
+		return al;
+	}
+
+	private static Alphabet newAlphabetBare() {
+		Alphabet al = new Alphabet();
+		al.ids.clear();
+		al.symbols.clear();
+		al.descriptions.clear();
+		return al;
+	}
+
+	/**
+	 * The id of the start symbol that is inserted automatically upon each
+	 * object's construction.
+	 */
+	public static final int idStart = -1;
+
+	/**
+	 * The id of the empty string symbol that is inserted automatically upon
+	 * each object's construction.
+	 */
+	public static final int idEmptyString = 0;
+}
